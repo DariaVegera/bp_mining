@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://example.com/bpmn"
+             id="Definitions_1">
+
+  <collaboration id="Collaboration_1">
+    <participant id="pool_main" name="Расчет плановой калькуляции по заявке и согласование с финансовым директором" processRef="Process_1"/>
+  </collaboration>
+
+  <process id="Process_1" isExecutable="false">
+
+    <laneSet id="LaneSet_1">
+      <lane id="lane_economist" name="Экономист">
+        <flowNodeRef>start_1</flowNodeRef>
+        <flowNodeRef>task_view_docs</flowNodeRef>
+        <flowNodeRef>gw_goz</flowNodeRef>
+        <flowNodeRef>task_forward_goz</flowNodeRef>
+        <flowNodeRef>task_check_qty</flowNodeRef>
+        <flowNodeRef>gw_price_list</flowNodeRef>
+        <flowNodeRef>task_take_price</flowNodeRef>
+        <flowNodeRef>task_fill_calc</flowNodeRef>
+        <flowNodeRef>gw_missing_prices</flowNodeRef>
+        <flowNodeRef>task_take_1c</flowNodeRef>
+        <flowNodeRef>gw_prices_found</flowNodeRef>
+        <flowNodeRef>task_request_supply</flowNodeRef>
+        <flowNodeRef>task_request_commercial</flowNodeRef>
+        <flowNodeRef>task_request_quality</flowNodeRef>
+        <flowNodeRef>task_update_calc</flowNodeRef>
+        <flowNodeRef>task_send_fd</flowNodeRef>
+        <flowNodeRef>task_attach_final</flowNodeRef>
+        <flowNodeRef>task_transfer_task</flowNodeRef>
+      </lane>
+      <lane id="lane_economist_goz" name="Экономист по ГОЗ">
+        <flowNodeRef>end_goz</flowNodeRef>
+      </lane>
+      <lane id="lane_procurement" name="Отдел снабжения">
+        <flowNodeRef>task_provide_prices</flowNodeRef>
+      </lane>
+      <lane id="lane_commercial" name="Коммерческий отдел / Отдел продаж">
+        <flowNodeRef>task_clarify_customer</flowNodeRef>
+      </lane>
+      <lane id="lane_quality" name="Управление качества">
+        <flowNodeRef>task_provide_quality</flowNodeRef>
+      </lane>
+      <lane id="lane_finance_director" name="Финансовый директор">
+        <flowNodeRef>gw_fd_approved</flowNodeRef>
+        <flowNodeRef>task_make_changes</flowNodeRef>
+        <flowNodeRef>end_pricelist</flowNodeRef>
+        <flowNodeRef>end_approved</flowNodeRef>
+      </lane>
+    </laneSet>
+
+    <startEvent id="start_1" name="Появилась новая задача по заявке в Битрикс">
+      <outgoing>flow_1</outgoing>
+    </startEvent>
+
+    <task id="task_view_docs" name="Просмотреть документы заявки (ТЗ/опросный лист/вложения)">
+      <incoming>flow_1</incoming>
+      <outgoing>flow_2</outgoing>
+    </task>
+
+    <exclusiveGateway id="gw_goz" name="ГОЗ или казначейский счет?">
+      <incoming>flow_2</incoming>
+      <outgoing>flow_3_yes</outgoing>
+      <outgoing>flow_3_no</outgoing>
+    </exclusiveGateway>
+
+    <task id="task_forward_goz" name="Переслать заявку экономисту по ГОЗ (по e-mail)">
+      <incoming>flow_3_yes</incoming>
+      <outgoing>flow_4</outgoing>
+    </task>
+
+    <endEvent id="end_goz" name="Заявка передана на расчет по ГОЗ">
+      <incoming>flow_4</incoming>
+    </endEvent>
+
+    <task id="task_check_qty" name="Проверить количество и условия по ТЗ vs расчет КТО">
+      <incoming>flow_3_no</incoming>
+      <outgoing>flow_5</outgoing>
+    </task>
+
+    <exclusiveGateway id="gw_price_list" name="Изделие из ГОСТ-прайса?">
+      <incoming>flow_5</incoming>
+      <outgoing>flow_6_yes</outgoing>
+      <outgoing>flow_6_no</outgoing>
+    </exclusiveGateway>
+
+    <task id="task_take_price" name="Взять цену из прайса и прикрепить в Битрикс">
+      <incoming>flow_6_yes</incoming>
+      <outgoing>flow_7</outgoing>
+    </task>
+
+    <endEvent id="end_pricelist" name="Расчет по прайсу прикреплен, задача завершена">
+      <incoming>flow_7</incoming>
+    </endEvent>
+
+    <task id="task_fill_calc" name="Заполнить калькуляцию (материалы / нормо-час / накладные / услуги / ПКИ)">
+      <incoming>flow_6_no</incoming>
+      <outgoing>flow_8</outgoing>
+    </task>
+
+    <exclusiveGateway id="gw_missing_prices" name="Не хватает цен/стоимостей?">
+      <incoming>flow_8</incoming>
+      <outgoing>flow_9_yes</outgoing>
+      <outgoing>flow_9_supply</outgoing>
+      <outgoing>flow_9_commercial</outgoing>
+      <outgoing>flow_9_quality</outgoing>
+      <outgoing>flow_9_no</outgoing>
+    </exclusiveGateway>
+
+    <task id="task_take_1c" name="Взять цены из 1С или с сайтов поставщиков">
+      <incoming>flow_9_yes</incoming>
+      <outgoing>flow_10</outgoing>
+    </task>
+
+    <exclusiveGateway id="gw_prices_found" name="Цены найдены без запросов?">
+      <incoming>flow_10</incoming>
+      <outgoing>flow_11_yes</outgoing>
+      <outgoing>flow_11_no</outgoing>
+    </exclusiveGateway>
+
+    <task id="task_request_supply" name="Запросить цены/сроки у снабжения (по e-mail)">
+      <incoming>flow_9_supply</incoming>
+      <incoming>flow_11_no</incoming>
+      <outgoing>flow_12</outgoing>
+    </task>
+
+    <task id="task_provide_prices" name="Предоставить цены/сроки поставки">
+      <incoming>flow_12</incoming>
+      <outgoing>flow_13</outgoing>
+    </task>
+
+    <task id="task_request_commercial" name="Запросить у коммерческого отдела уточнения (количество/приемка)">
+      <incoming>flow_9_commercial</incoming>
+      <outgoing>flow_14</outgoing>
+    </task>
+
+    <task id="task_clarify_customer" name="Уточнить у заказчика и предоставить информацию">
+      <incoming>flow_14</incoming>
+      <outgoing>flow_15</outgoing>
+    </task>
+
+    <task id="task_request_quality" name="Запросить у управления качества (ГОЗ/не ГОЗ, приемка, испытания)">
+      <incoming>flow_9_quality</incoming>
+      <outgoing>flow_16</outgoing>
+    </task>
+
+    <task id="task_provide_quality" name="Предоставить информацию/стоимости по запросу">
+      <incoming>flow_16</incoming>
+      <outgoing>flow_17</outgoing>
+    </task>
+
+    <task id="task_update_calc" name="Обновить калькуляцию по полученным данным">
+      <incoming>flow_11_yes</incoming>
+      <incoming>flow_13</incoming>
+      <incoming>flow_15</incoming>
+      <incoming>flow_17</incoming>
+      <outgoing>flow_18</outgoing>
+    </task>
+
+    <task id="task_send_fd" name="Отправить расчет финдиректору на согласование (по e-mail)">
+      <incoming>flow_9_no</incoming>
+      <incoming>flow_18</incoming>
+      <outgoing>flow_19</outgoing>
+    </task>
+
+    <exclusiveGateway id="gw_fd_approved" name="Финдиректор согласовал?">
+      <incoming>flow_19</incoming>
+      <outgoing>flow_20_yes</outgoing>
+      <outgoing>flow_20_no</outgoing>
+    </exclusiveGateway>
+
+    <task id="task_make_changes" name="Внести изменения в калькуляцию и отправить исправленный файл">
+      <incoming>flow_20_no</incoming>
+      <outgoing>flow_21</outgoing>
+    </task>
+
+    <task id="task_attach_final" name="Прикрепить финальный расчет в Битрикс и отметить согласование">
+      <incoming>flow_20_yes</incoming>
+      <incoming>flow_21</incoming>
+      <outgoing>flow_22</outgoing>
+    </task>
+
+    <task id="task_transfer_task" name="Перевести задачу на финдиректора и завершить свою задачу">
+      <incoming>flow_22</incoming>
+      <outgoing>flow_23</outgoing>
+    </task>
+
+    <endEvent id="end_approved" name="Расчет согласован и зафиксирован в Битрикс">
+      <incoming>flow_23</incoming>
+    </endEvent>
+
+    <!-- Sequence Flows -->
+    <sequenceFlow id="flow_1" sourceRef="start_1" targetRef="task_view_docs"/>
+    <sequenceFlow id="flow_2" sourceRef="task_view_docs" targetRef="gw_goz"/>
+    <sequenceFlow id="flow_3_yes" name="Да (ГОЗ)" sourceRef="gw_goz" targetRef="task_forward_goz"/>
+    <sequenceFlow id="flow_3_no" name="Нет" sourceRef="gw_goz" targetRef="task_check_qty"/>
+    <sequenceFlow id="flow_4" sourceRef="task_forward_goz" targetRef="end_goz"/>
+    <sequenceFlow id="flow_5" sourceRef="task_check_qty" targetRef="gw_price_list"/>
+    <sequenceFlow id="flow_6_yes" name="Да" sourceRef="gw_price_list" targetRef="task_take_price"/>
+    <sequenceFlow id="flow_6_no" name="Нет" sourceRef="gw_price_list" targetRef="task_fill_calc"/>
+    <sequenceFlow id="flow_7" sourceRef="task_take_price" targetRef="end_pricelist"/>
+    <sequenceFlow id="flow_8" sourceRef="task_fill_calc" targetRef="gw_missing_prices"/>
+    <sequenceFlow id="flow_9_yes" name="Да (1С/сайты)" sourceRef="gw_missing_prices" targetRef="task_take_1c"/>
+    <sequenceFlow id="flow_9_supply" name="Запрос снабжению" sourceRef="gw_missing_prices" targetRef="task_request_supply"/>
+    <sequenceFlow id="flow_9_commercial" name="Уточнение у заказчика" sourceRef="gw_missing_prices" targetRef="task_request_commercial"/>
+    <sequenceFlow id="flow_9_quality" name="Информация от качества" sourceRef="gw_missing_prices" targetRef="task_request_quality"/>
+    <sequenceFlow id="flow_9_no" name="Нет (данные есть)" sourceRef="gw_missing_prices" targetRef="task_send_fd"/>
+    <sequenceFlow id="flow_10" sourceRef="task_take_1c" targetRef="gw_prices_found"/>
+    <sequenceFlow id="flow_11_yes" name="Да" sourceRef="gw_prices_found" targetRef="task_update_calc"/>
+    <sequenceFlow id="flow_11_no" name="Нет" sourceRef="gw_prices_found" targetRef="task_request_supply"/>
+    <sequenceFlow id="flow_12" sourceRef="task_request_supply" targetRef="task_provide_prices"/>
+    <sequenceFlow id="flow_13" sourceRef="task_provide_prices" targetRef="task_update_calc"/>
+    <sequenceFlow id="flow_14" sourceRef="task_request_commercial" targetRef="task_clarify_customer"/>
+    <sequenceFlow id="flow_15" sourceRef="task_clarify_customer" targetRef="task_update_calc"/>
+    <sequenceFlow id="flow_16" sourceRef="task_request_quality" targetRef="task_provide_quality"/>
+    <sequenceFlow id="flow_17" sourceRef="task_provide_quality" targetRef="task_update_calc"/>
+    <sequenceFlow id="flow_18" sourceRef="task_update_calc" targetRef="task_send_fd"/>
+    <sequenceFlow id="flow_19" sourceRef="task_send_fd" targetRef="gw_fd_approved"/>
+    <sequenceFlow id="flow_20_yes" name="Да" sourceRef="gw_fd_approved" targetRef="task_attach_final"/>
+    <sequenceFlow id="flow_20_no" name="Нет (правки)" sourceRef="gw_fd_approved" targetRef="task_make_changes"/>
+    <sequenceFlow id="flow_21" sourceRef="task_make_changes" targetRef="task_attach_final"/>
+    <sequenceFlow id="flow_22" sourceRef="task_attach_final" targetRef="task_transfer_task"/>
+    <sequenceFlow id="flow_23" sourceRef="task_transfer_task" targetRef="end_approved"/>
+
+  </process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+
+      <!-- Pool: 2620 x 1130 -->
+      <bpmndi:BPMNShape id="pool_main_di" bpmnElement="pool_main" isHorizontal="true">
+        <dc:Bounds x="100" y="20" width="2620" height="1130"/>
+      </bpmndi:BPMNShape>
+
+      <!-- Lane heights: economist=420, goz=120, procurement=120, commercial=120, quality=120, fd=230 -->
+      <bpmndi:BPMNShape id="lane_economist_di" bpmnElement="lane_economist" isHorizontal="true">
+        <dc:Bounds x="130" y="20" width="2590" height="420"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_economist_goz_di" bpmnElement="lane_economist_goz" isHorizontal="true">
+        <dc:Bounds x="130" y="440" width="2590" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_procurement_di" bpmnElement="lane_procurement" isHorizontal="true">
+        <dc:Bounds x="130" y="560" width="2590" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_commercial_di" bpmnElement="lane_commercial" isHorizontal="true">
+        <dc:Bounds x="130" y="680" width="2590" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_quality_di" bpmnElement="lane_quality" isHorizontal="true">
+        <dc:Bounds x="130" y="800" width="2590" height="120"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_finance_director_di" bpmnElement="lane_finance_director" isHorizontal="true">
+        <dc:Bounds x="130" y="920" width="2590" height="230"/>
+      </bpmndi:BPMNShape>
+
+      <!-- ===== SHAPES ===== -->
+      <!-- Economist lane centerY = 20 + 210 = 230 -->
+
+      <!-- start_1: x=210, y=212 -->
+      <bpmndi:BPMNShape id="start_1_di" bpmnElement="start_1">
+        <dc:Bounds x="212" y="212" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="188" y="256" width="84" height="54"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_view_docs: x=310 -->
+      <bpmndi:BPMNShape id="task_view_docs_di" bpmnElement="task_view_docs">
+        <dc:Bounds x="300" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- gw_goz: x=520 -->
+      <bpmndi:BPMNShape id="gw_goz_di" bpmnElement="gw_goz" isMarkerVisible="true">
+        <dc:Bounds x="520" y="205" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="493" y="262" width="104" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_forward_goz: in economist lane, below gw_goz, y=310 -->
+      <bpmndi:BPMNShape id="task_forward_goz_di" bpmnElement="task_forward_goz">
+        <dc:Bounds x="495" y="310" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- end_goz: in economist_goz lane, y=470 -->
+      <bpmndi:BPMNShape id="end_goz_di" bpmnElement="end_goz">
+        <dc:Bounds x="715" y="482" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="689" y="526" width="88" height="40"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_check_qty: x=640 -->
+      <bpmndi:BPMNShape id="task_check_qty_di" bpmnElement="task_check_qty">
+        <dc:Bounds x="630" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- gw_price_list: x=850 -->
+      <bpmndi:BPMNShape id="gw_price_list_di" bpmnElement="gw_price_list" isMarkerVisible="true">
+        <dc:Bounds x="850" y="205" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="820" y="262" width="110" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_take_price: x=830, y=60 (upper branch) -->
+      <bpmndi:BPMNShape id="task_take_price_di" bpmnElement="task_take_price">
+        <dc:Bounds x="820" y="55" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- end_pricelist: in fd lane, y=975 -->
+      <bpmndi:BPMNShape id="end_pricelist_di" bpmnElement="end_pricelist">
+        <dc:Bounds x="972" y="980" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="940" y="1024" width="100" height="54"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_fill_calc: x=960 -->
+      <bpmndi:BPMNShape id="task_fill_calc_di" bpmnElement="task_fill_calc">
+        <dc:Bounds x="960" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- gw_missing_prices: x=1180 -->
+      <bpmndi:BPMNShape id="gw_missing_prices_di" bpmnElement="gw_missing_prices" isMarkerVisible="true">
+        <dc:Bounds x="1180" y="205" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1148" y="262" width="114" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_take_1c: upper branch, y=55 -->
+      <bpmndi:BPMNShape id="task_take_1c_di" bpmnElement="task_take_1c">
+        <dc:Bounds x="1155" y="55" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- gw_prices_found: x=1375, y=75 -->
+      <bpmndi:BPMNShape id="gw_prices_found_di" bpmnElement="gw_prices_found" isMarkerVisible="true">
+        <dc:Bounds x="1375" y="70" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1338" y="127" width="124" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_request_supply: x=1370, y=190 -->
+      <bpmndi:BPMNShape id="task_request_supply_di" bpmnElement="task_request_supply">
+        <dc:Bounds x="1355" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_provide_prices: procurement lane, y=580 -->
+      <bpmndi:BPMNShape id="task_provide_prices_di" bpmnElement="task_provide_prices">
+        <dc:Bounds x="1355" y="580" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_request_commercial: economist lane, y=320 -->
+      <bpmndi:BPMNShape id="task_request_commercial_di" bpmnElement="task_request_commercial">
+        <dc:Bounds x="1155" y="310" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_clarify_customer: commercial lane, y=700 -->
+      <bpmndi:BPMNShape id="task_clarify_customer_di" bpmnElement="task_clarify_customer">
+        <dc:Bounds x="1155" y="700" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_request_quality: economist lane, y=320 -->
+      <bpmndi:BPMNShape id="task_request_quality_di" bpmnElement="task_request_quality">
+        <dc:Bounds x="1355" y="310" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_provide_quality: quality lane, y=820 -->
+      <bpmndi:BPMNShape id="task_provide_quality_di" bpmnElement="task_provide_quality">
+        <dc:Bounds x="1355" y="820" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_update_calc: x=1580 -->
+      <bpmndi:BPMNShape id="task_update_calc_di" bpmnElement="task_update_calc">
+        <dc:Bounds x="1580" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_send_fd: x=1800 -->
+      <bpmndi:BPMNShape id="task_send_fd_di" bpmnElement="task_send_fd">
+        <dc:Bounds x="1800" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- gw_fd_approved: fd lane, x=1950, y=980 -->
+      <bpmndi:BPMNShape id="gw_fd_approved_di" bpmnElement="gw_fd_approved" isMarkerVisible="true">
+        <dc:Bounds x="1950" y="980" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1915" y="1037" width="120" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- task_make_changes: fd lane, x=2080 -->
+      <bpmndi:BPMNShape id="task_make_changes_di" bpmnElement="task_make_changes">
+        <dc:Bounds x="2070" y="965" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_attach_final: economist lane -->
+      <bpmndi:BPMNShape id="task_attach_final_di" bpmnElement="task_attach_final">
+        <dc:Bounds x="2070" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- task_transfer_task -->
+      <bpmndi:BPMNShape id="task_transfer_task_di" bpmnElement="task_transfer_task">
+        <dc:Bounds x="2290" y="190" width="160" height="80"/>
+      </bpmndi:BPMNShape>
+
+      <!-- end_approved: fd lane -->
+      <bpmndi:BPMNShape id="end_approved_di" bpmnElement="end_approved">
+        <dc:Bounds x="2490" y="980" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2460" y="1024" width="100" height="54"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- ===== EDGES ===== -->
+
+      <bpmndi:BPMNEdge id="flow_1_di" bpmnElement="flow_1">
+        <di:waypoint x="248" y="230"/>
+        <di:waypoint x="300" y="230"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="flow_2_di" bpmnElement="flow_2">
+        <di:waypoint x="460" y="230"/>
+        <di:waypoint x="520" y="230"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_goz -> task_forward_goz (Да, вниз) -->
+      <bpmndi:BPMNEdge id="flow_3_yes_di" bpmnElement="flow_3_yes">
+        <di:waypoint x="545" y="255"/>
+        <di:waypoint x="545" y="350"/>
+        <di:waypoint x="495" y="350"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="548" y="290" width="54" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_forward_goz -> end_goz -->
+      <bpmndi:BPMNEdge id="flow_4_di" bpmnElement="flow_4">
+        <di:waypoint x="655" y="390"/>
+        <di:waypoint x="733" y="390"/>
+        <di:waypoint x="733" y="482"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_goz -> task_check_qty (Нет, вправо) -->
+      <bpmndi:BPMNEdge id="flow_3_no_di" bpmnElement="flow_3_no">
+        <di:waypoint x="570" y="230"/>
+        <di:waypoint x="630" y="230"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="590" y="212" width="30" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="flow_5_di" bpmnElement="flow_5">
+        <di:waypoint x="790" y="230"/>
+        <di:waypoint x="850" y="230"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_price_list -> task_take_price (Да, вверх) -->
+      <bpmndi:BPMNEdge id="flow_6_yes_di" bpmnElement="flow_6_yes">
+        <di:waypoint x="875" y="205"/>
+        <di:waypoint x="875" y="135"/>
+        <di:waypoint x="820" y="135"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="882" y="162" width="20" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_take_price -> end_pricelist (через правую сторону, вниз в fd) -->
+      <bpmndi:BPMNEdge id="flow_7_di" bpmnElement="flow_7">
+        <di:waypoint x="990" y="95"/>
+        <di:waypoint x="990" y="980"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_price_list -> task_fill_calc (Нет) -->
+      <bpmndi:BPMNEdge id="flow_6_no_di" bpmnElement="flow_6_no">
+        <di:waypoint x="900" y="230"/>
+        <di:waypoint x="960" y="230"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="918" y="212" width="30" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="flow_8_di" bpmnElement="flow_8">
+        <di:waypoint x="1120" y="230"/>
+        <di:waypoint x="1180" y="230"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_missing -> task_take_1c (Да, вверх) -->
+      <bpmndi:BPMNEdge id="flow_9_yes_di" bpmnElement="flow_9_yes">
+        <di:waypoint x="1205" y="205"/>
+        <di:waypoint x="1205" y="135"/>
+        <di:waypoint x="1155" y="135"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1164" y="155" width="80" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_missing -> task_request_supply (вправо) -->
+      <bpmndi:BPMNEdge id="flow_9_supply_di" bpmnElement="flow_9_supply">
+        <di:waypoint x="1230" y="230"/>
+        <di:waypoint x="1355" y="230"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1252" y="210" width="88" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_missing -> task_request_commercial (вниз влево) -->
+      <bpmndi:BPMNEdge id="flow_9_commercial_di" bpmnElement="flow_9_commercial">
+        <di:waypoint x="1205" y="255"/>
+        <di:waypoint x="1205" y="350"/>
+        <di:waypoint x="1155" y="350"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1148" y="290" width="110" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_missing -> task_request_quality (вниз вправо) -->
+      <bpmndi:BPMNEdge id="flow_9_quality_di" bpmnElement="flow_9_quality">
+        <di:waypoint x="1230" y="230"/>
+        <di:waypoint x="1435" y="230"/>
+        <di:waypoint x="1435" y="310"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1290" y="246" width="110" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_missing -> task_send_fd (Нет, прямо) -->
+      <bpmndi:BPMNEdge id="flow_9_no_di" bpmnElement="flow_9_no">
+        <di:waypoint x="1230" y="230"/>
+        <di:waypoint x="1800" y="230"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1480" y="210" width="80" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="flow_10_di" bpmnElement="flow_10">
+        <di:waypoint x="1315" y="95"/>
+        <di:waypoint x="1375" y="95"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_prices_found -> task_update_calc (Да, вправо вверху) -->
+      <bpmndi:BPMNEdge id="flow_11_yes_di" bpmnElement="flow_11_yes">
+        <di:waypoint x="1425" y="95"/>
+        <di:waypoint x="1660" y="95"/>
+        <di:waypoint x="1660" y="190"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1498" y="77" width="20" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_prices_found -> task_request_supply (Нет, вниз) -->
+      <bpmndi:BPMNEdge id="flow_11_no_di" bpmnElement="flow_11_no">
+        <di:waypoint x="1400" y="120"/>
+        <di:waypoint x="1400" y="190"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1406" y="148" width="30" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_request_supply -> task_provide_prices (вниз в procurement) -->
+      <bpmndi:BPMNEdge id="flow_12_di" bpmnElement="flow_12">
+        <di:waypoint x="1435" y="270"/>
+        <di:waypoint x="1435" y="580"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_provide_prices -> task_update_calc -->
+      <bpmndi:BPMNEdge id="flow_13_di" bpmnElement="flow_13">
+        <di:waypoint x="1515" y="620"/>
+        <di:waypoint x="1660" y="620"/>
+        <di:waypoint x="1660" y="270"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_request_commercial -> task_clarify_customer (вниз в commercial) -->
+      <bpmndi:BPMNEdge id="flow_14_di" bpmnElement="flow_14">
+        <di:waypoint x="1235" y="390"/>
+        <di:waypoint x="1235" y="700"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_clarify_customer -> task_update_calc -->
+      <bpmndi:BPMNEdge id="flow_15_di" bpmnElement="flow_15">
+        <di:waypoint x="1315" y="740"/>
+        <di:waypoint x="1660" y="740"/>
+        <di:waypoint x="1660" y="270"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_request_quality -> task_provide_quality (вниз в quality) -->
+      <bpmndi:BPMNEdge id="flow_16_di" bpmnElement="flow_16">
+        <di:waypoint x="1435" y="390"/>
+        <di:waypoint x="1435" y="820"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_provide_quality -> task_update_calc -->
+      <bpmndi:BPMNEdge id="flow_17_di" bpmnElement="flow_17">
+        <di:waypoint x="1515" y="860"/>
+        <di:waypoint x="1660" y="860"/>
+        <di:waypoint x="1660" y="270"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="flow_18_di" bpmnElement="flow_18">
+        <di:waypoint x="1740" y="230"/>
+        <di:waypoint x="1800" y="230"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_send_fd -> gw_fd_approved (вниз в fd) -->
+      <bpmndi:BPMNEdge id="flow_19_di" bpmnElement="flow_19">
+        <di:waypoint x="1880" y="230"/>
+        <di:waypoint x="1975" y="230"/>
+        <di:waypoint x="1975" y="980"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_fd_approved -> task_attach_final (Да, вверх) -->
+      <bpmndi:BPMNEdge id="flow_20_yes_di" bpmnElement="flow_20_yes">
+        <di:waypoint x="1975" y="980"/>
+        <di:waypoint x="1975" y="230"/>
+        <di:waypoint x="2070" y="230"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1980" y="590" width="20" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- gw_fd_approved -> task_make_changes (Нет, вправо) -->
+      <bpmndi:BPMNEdge id="flow_20_no_di" bpmnElement="flow_20_no">
+        <di:waypoint x="2000" y="1005"/>
+        <di:waypoint x="2070" y="1005"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2005" y="985" width="60" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_make_changes -> task_attach_final (вверх) -->
+      <bpmndi:BPMNEdge id="flow_21_di" bpmnElement="flow_21">
+        <di:waypoint x="2150" y="965"/>
+        <di:waypoint x="2150" y="270"/>
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="flow_22_di" bpmnElement="flow_22">
+        <di:waypoint x="2230" y="230"/>
+        <di:waypoint x="2290" y="230"/>
+      </bpmndi:BPMNEdge>
+
+      <!-- task_transfer_task -> end_approved (вниз в fd) -->
+      <bpmndi:BPMNEdge id="flow_23_di" bpmnElement="flow_23">
+        <di:waypoint x="2450" y="230"/>
+        <di:waypoint x="2508" y="230"/>
+        <di:waypoint x="2508" y="980"/>
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>

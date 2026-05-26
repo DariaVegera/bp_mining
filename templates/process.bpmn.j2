@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             id="Definitions_1">
+
+  <!-- Процесс: {{ process.process_name }} -->
+  <collaboration id="Collaboration_1">
+    <participant id="Pool_1" name="{{ process.process_name }}" processRef="Process_1" />
+  </collaboration>
+
+  <process id="Process_1" isExecutable="false">
+
+    <!-- Lanes (участники) -->
+    <laneSet id="LaneSet_1">
+      {% for lane in process.lanes %}
+      <lane id="{{ lane.id }}" name="{{ lane.name }}">
+        {% for elem in process.elements if elem.lane_id == lane.id %}
+        <flowNodeRef>{{ elem.id }}</flowNodeRef>
+        {% endfor %}
+      </lane>
+      {% endfor %}
+    </laneSet>
+
+    <!-- Элементы процесса -->
+    {% for elem in process.elements %}
+    {% if elem.type == 'startEvent' %}
+    <startEvent id="{{ elem.id }}" name="{{ elem.name }}" />
+    {% elif elem.type == 'endEvent' %}
+    <endEvent id="{{ elem.id }}" name="{{ elem.name }}" />
+    {% elif elem.type == 'task' %}
+    <task id="{{ elem.id }}" name="{{ elem.name }}" />
+    {% elif elem.type == 'exclusiveGateway' %}
+    <exclusiveGateway id="{{ elem.id }}" name="{{ elem.name }}" gatewayDirection="Diverging" />
+    {% endif %}
+    {% endfor %}
+
+    <!-- Потоки -->
+    {% for flow in process.flows %}
+    <sequenceFlow id="{{ flow.id }}"
+                  sourceRef="{{ flow.source_id }}"
+                  targetRef="{{ flow.target_id }}"
+                  {% if flow.condition %}name="{{ flow.condition }}"{% endif %} />
+    {% endfor %}
+
+  </process>
+
+  <!-- Диаграмма (координаты) -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+
+      <!-- Пул -->
+      <bpmndi:BPMNShape id="Pool_1_di" bpmnElement="Pool_1" isHorizontal="true">
+        <dc:Bounds x="130" y="80"
+                   width="{{ pool_width }}"
+                   height="{{ pool_height }}" />
+      </bpmndi:BPMNShape>
+
+      <!-- Lanes -->
+      {% for lane in process.lanes %}
+      <bpmndi:BPMNShape id="{{ lane.id }}_di" bpmnElement="{{ lane.id }}" isHorizontal="true">
+        <dc:Bounds x="160" y="{{ lane.y }}"
+                   width="{{ pool_width - 30 }}"
+                   height="{{ lane_height }}" />
+      </bpmndi:BPMNShape>
+      {% endfor %}
+
+      <!-- Элементы -->
+      {% for elem in process.elements %}
+      <bpmndi:BPMNShape id="{{ elem.id }}_di" bpmnElement="{{ elem.id }}">
+        <dc:Bounds x="{{ elem.x }}" y="{{ elem.y }}"
+                   width="{{ elem.width }}" height="{{ elem.height }}" />
+      </bpmndi:BPMNShape>
+      {% endfor %}
+
+      <!-- Потоки (соединения) -->
+      {% for flow in process.flows %}
+      <bpmndi:BPMNEdge id="{{ flow.id }}_di" bpmnElement="{{ flow.id }}">
+        <di:waypoint x="{{ flow.source_x }}" y="{{ flow.source_y }}" />
+        <di:waypoint x="{{ flow.target_x }}" y="{{ flow.target_y }}" />
+        {% if flow.condition %}
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="{{ (flow.source_x + flow.target_x) // 2 - 20 }}"
+                     y="{{ (flow.source_y + flow.target_y) // 2 - 10 }}"
+                     width="60" height="20" />
+        </bpmndi:BPMNLabel>
+        {% endif %}
+      </bpmndi:BPMNEdge>
+      {% endfor %}
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>
