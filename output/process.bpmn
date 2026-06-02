@@ -7,163 +7,170 @@
              targetNamespace="http://bpmn.io/schema/bpmn"
              id="Definitions_1">
 
-  <!-- Процесс: Расчет плановой калькуляции по заявке -->
   <collaboration id="Collaboration_1">
     <participant id="Pool_1" name="Расчет плановой калькуляции по заявке" processRef="Process_1" />
   </collaboration>
 
   <process id="Process_1" isExecutable="false">
 
-    <!-- Lanes (участники) -->
     <laneSet id="LaneSet_1">
       <lane id="lane_economist" name="Экономист">
-        <flowNodeRef>startEvent_Появилась_новая_зада</flowNodeRef>
-        <flowNodeRef>task_Просмотреть_документ</flowNodeRef>
-        <flowNodeRef>exclusiveGateway_Изделие_из_прайса_</flowNodeRef>
-        <flowNodeRef>task_Взять_цену_из_прайса</flowNodeRef>
-        <flowNodeRef>endEvent_Расчет_по_прайсу_гот</flowNodeRef>
-        <flowNodeRef>task_Заполнить_калькуляци</flowNodeRef>
-        <flowNodeRef>task_Отправить_на_согласо</flowNodeRef>
-        <flowNodeRef>task_Прикрепить_финальный</flowNodeRef>
+        <flowNodeRef>start_poyavilas_novaya_zad</flowNodeRef>
+        <flowNodeRef>task_prosmotret_dokumenty</flowNodeRef>
+        <flowNodeRef>gw_izdelie_iz_prajsa</flowNodeRef>
+        <flowNodeRef>task_vzyat_tsenu_iz_prajs</flowNodeRef>
+        <flowNodeRef>end_raschet_po_prajsu_go</flowNodeRef>
+        <flowNodeRef>task_zapolnit_kalkulyatsi</flowNodeRef>
+        <flowNodeRef>task_otpravit_na_soglasov</flowNodeRef>
+        <flowNodeRef>task_prikrepit_finalnyj_r</flowNodeRef>
       </lane>
       <lane id="lane_finance_director" name="Финансовый директор">
-        <flowNodeRef>exclusiveGateway_Финдиректор_согласов</flowNodeRef>
-        <flowNodeRef>task_Внести_изменения</flowNodeRef>
-        <flowNodeRef>endEvent_Расчет_согласован</flowNodeRef>
+        <flowNodeRef>gw_findirektor_soglasov</flowNodeRef>
+        <flowNodeRef>task_vnesti_izmeneniya</flowNodeRef>
+        <flowNodeRef>end_raschet_soglasovan</flowNodeRef>
       </lane>
     </laneSet>
 
-    <!-- Элементы процесса -->
-    <startEvent id="startEvent_Появилась_новая_зада" name="Появилась новая задача" />
-    <task id="task_Просмотреть_документ" name="Просмотреть документы заявки" />
-    <exclusiveGateway id="exclusiveGateway_Изделие_из_прайса_" name="Изделие из прайса?" gatewayDirection="Diverging" />
-    <task id="task_Взять_цену_из_прайса" name="Взять цену из прайса" />
-    <endEvent id="endEvent_Расчет_по_прайсу_гот" name="Расчет по прайсу готов" />
-    <task id="task_Заполнить_калькуляци" name="Заполнить калькуляцию" />
-    <task id="task_Отправить_на_согласо" name="Отправить на согласование" />
-    <exclusiveGateway id="exclusiveGateway_Финдиректор_согласов" name="Финдиректор согласовал?" gatewayDirection="Diverging" />
-    <task id="task_Внести_изменения" name="Внести изменения" />
-    <task id="task_Прикрепить_финальный" name="Прикрепить финальный расчет" />
-    <endEvent id="endEvent_Расчет_согласован" name="Расчет согласован" />
+    <startEvent id="start_poyavilas_novaya_zad" name="Появилась новая задача">
+      <outgoing>flow_1</outgoing>
+    </startEvent>
+    <task id="task_prosmotret_dokumenty" name="Просмотреть документы заявки">
+      <incoming>flow_1</incoming>
+      <outgoing>flow_2</outgoing>
+    </task>
+    <exclusiveGateway id="gw_izdelie_iz_prajsa" name="Изделие из прайса?" gatewayDirection="Diverging">
+      <incoming>flow_2</incoming>
+      <outgoing>flow_3</outgoing>
+      <outgoing>flow_5</outgoing>
+    </exclusiveGateway>
+    <task id="task_vzyat_tsenu_iz_prajs" name="Взять цену из прайса">
+      <incoming>flow_3</incoming>
+      <outgoing>flow_4</outgoing>
+    </task>
+    <endEvent id="end_raschet_po_prajsu_go" name="Расчет по прайсу готов">
+      <incoming>flow_4</incoming>
+    </endEvent>
+    <task id="task_zapolnit_kalkulyatsi" name="Заполнить калькуляцию">
+      <incoming>flow_5</incoming>
+      <outgoing>flow_6</outgoing>
+    </task>
+    <task id="task_otpravit_na_soglasov" name="Отправить на согласование">
+      <incoming>flow_6</incoming>
+      <outgoing>flow_7</outgoing>
+    </task>
+    <exclusiveGateway id="gw_findirektor_soglasov" name="Финдиректор согласовал?" gatewayDirection="Diverging">
+      <incoming>flow_7</incoming>
+      <outgoing>flow_8</outgoing>
+      <outgoing>flow_9</outgoing>
+    </exclusiveGateway>
+    <task id="task_vnesti_izmeneniya" name="Внести изменения">
+      <incoming>flow_9</incoming>
+      <outgoing>flow_10</outgoing>
+    </task>
+    <task id="task_prikrepit_finalnyj_r" name="Прикрепить финальный расчет">
+      <incoming>flow_8</incoming>
+      <incoming>flow_10</incoming>
+      <outgoing>flow_11</outgoing>
+    </task>
+    <endEvent id="end_raschet_soglasovan" name="Расчет согласован">
+      <incoming>flow_11</incoming>
+    </endEvent>
 
-    <!-- Потоки -->
     <sequenceFlow id="flow_1"
-                  sourceRef="startEvent_Появилась_новая_зада"
-                  targetRef="task_Просмотреть_документ"
+                  sourceRef="start_poyavilas_novaya_zad"
+                  targetRef="task_prosmotret_dokumenty"
  />
     <sequenceFlow id="flow_2"
-                  sourceRef="task_Просмотреть_документ"
-                  targetRef="exclusiveGateway_Изделие_из_прайса_"
+                  sourceRef="task_prosmotret_dokumenty"
+                  targetRef="gw_izdelie_iz_prajsa"
  />
     <sequenceFlow id="flow_3"
-                  sourceRef="exclusiveGateway_Изделие_из_прайса_"
-                  targetRef="task_Взять_цену_из_прайса"
+                  sourceRef="gw_izdelie_iz_prajsa"
+                  targetRef="task_vzyat_tsenu_iz_prajs"
 name="Да" />
     <sequenceFlow id="flow_4"
-                  sourceRef="task_Взять_цену_из_прайса"
-                  targetRef="endEvent_Расчет_по_прайсу_гот"
+                  sourceRef="task_vzyat_tsenu_iz_prajs"
+                  targetRef="end_raschet_po_prajsu_go"
  />
     <sequenceFlow id="flow_5"
-                  sourceRef="exclusiveGateway_Изделие_из_прайса_"
-                  targetRef="task_Заполнить_калькуляци"
+                  sourceRef="gw_izdelie_iz_prajsa"
+                  targetRef="task_zapolnit_kalkulyatsi"
 name="Нет" />
     <sequenceFlow id="flow_6"
-                  sourceRef="task_Заполнить_калькуляци"
-                  targetRef="task_Отправить_на_согласо"
+                  sourceRef="task_zapolnit_kalkulyatsi"
+                  targetRef="task_otpravit_na_soglasov"
  />
     <sequenceFlow id="flow_7"
-                  sourceRef="task_Отправить_на_согласо"
-                  targetRef="exclusiveGateway_Финдиректор_согласов"
+                  sourceRef="task_otpravit_na_soglasov"
+                  targetRef="gw_findirektor_soglasov"
  />
     <sequenceFlow id="flow_8"
-                  sourceRef="exclusiveGateway_Финдиректор_согласов"
-                  targetRef="task_Прикрепить_финальный"
+                  sourceRef="gw_findirektor_soglasov"
+                  targetRef="task_prikrepit_finalnyj_r"
 name="Да" />
     <sequenceFlow id="flow_9"
-                  sourceRef="exclusiveGateway_Финдиректор_согласов"
-                  targetRef="task_Внести_изменения"
+                  sourceRef="gw_findirektor_soglasov"
+                  targetRef="task_vnesti_izmeneniya"
 name="Нет" />
     <sequenceFlow id="flow_10"
-                  sourceRef="task_Внести_изменения"
-                  targetRef="task_Прикрепить_финальный"
+                  sourceRef="task_vnesti_izmeneniya"
+                  targetRef="task_prikrepit_finalnyj_r"
  />
     <sequenceFlow id="flow_11"
-                  sourceRef="task_Прикрепить_финальный"
-                  targetRef="endEvent_Расчет_согласован"
+                  sourceRef="task_prikrepit_finalnyj_r"
+                  targetRef="end_raschet_soglasovan"
  />
 
   </process>
 
-  <!-- Диаграмма (координаты) -->
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
 
-      <!-- Пул -->
       <bpmndi:BPMNShape id="Pool_1_di" bpmnElement="Pool_1" isHorizontal="true">
-        <dc:Bounds x="130" y="80"
-                   width="2316"
-                   height="280" />
+        <dc:Bounds x="130" y="80" width="2316" height="280" />
       </bpmndi:BPMNShape>
 
-      <!-- Lanes -->
       <bpmndi:BPMNShape id="lane_economist_di" bpmnElement="lane_economist" isHorizontal="true">
-        <dc:Bounds x="160" y="80"
-                   width="2286"
-                   height="140" />
+        <dc:Bounds x="160" y="80" width="2286" height="140" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="lane_finance_director_di" bpmnElement="lane_finance_director" isHorizontal="true">
-        <dc:Bounds x="160" y="220"
-                   width="2286"
-                   height="140" />
+        <dc:Bounds x="160" y="220" width="2286" height="140" />
       </bpmndi:BPMNShape>
 
-      <!-- Элементы -->
-      <bpmndi:BPMNShape id="startEvent_Появилась_новая_зада_di" bpmnElement="startEvent_Появилась_новая_зада">
-        <dc:Bounds x="230" y="132"
-                   width="36" height="36" />
+      <bpmndi:BPMNShape id="start_poyavilas_novaya_zad_di" bpmnElement="start_poyavilas_novaya_zad">
+        <dc:Bounds x="230" y="132" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task_Просмотреть_документ_di" bpmnElement="task_Просмотреть_документ">
-        <dc:Bounds x="430" y="120"
-                   width="160" height="60" />
+      <bpmndi:BPMNShape id="task_prosmotret_dokumenty_di" bpmnElement="task_prosmotret_dokumenty">
+        <dc:Bounds x="430" y="120" width="160" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="exclusiveGateway_Изделие_из_прайса__di" bpmnElement="exclusiveGateway_Изделие_из_прайса_">
-        <dc:Bounds x="630" y="125"
-                   width="50" height="50" />
+      <bpmndi:BPMNShape id="gw_izdelie_iz_prajsa_di" bpmnElement="gw_izdelie_iz_prajsa" isMarkerVisible="true">
+        <dc:Bounds x="630" y="125" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task_Взять_цену_из_прайса_di" bpmnElement="task_Взять_цену_из_прайса">
-        <dc:Bounds x="830" y="120"
-                   width="160" height="60" />
+      <bpmndi:BPMNShape id="task_vzyat_tsenu_iz_prajs_di" bpmnElement="task_vzyat_tsenu_iz_prajs">
+        <dc:Bounds x="830" y="120" width="160" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="endEvent_Расчет_по_прайсу_гот_di" bpmnElement="endEvent_Расчет_по_прайсу_гот">
-        <dc:Bounds x="1230" y="132"
-                   width="36" height="36" />
+      <bpmndi:BPMNShape id="end_raschet_po_prajsu_go_di" bpmnElement="end_raschet_po_prajsu_go">
+        <dc:Bounds x="1230" y="132" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task_Заполнить_калькуляци_di" bpmnElement="task_Заполнить_калькуляци">
-        <dc:Bounds x="1030" y="120"
-                   width="160" height="60" />
+      <bpmndi:BPMNShape id="task_zapolnit_kalkulyatsi_di" bpmnElement="task_zapolnit_kalkulyatsi">
+        <dc:Bounds x="1030" y="120" width="160" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task_Отправить_на_согласо_di" bpmnElement="task_Отправить_на_согласо">
-        <dc:Bounds x="1430" y="120"
-                   width="160" height="60" />
+      <bpmndi:BPMNShape id="task_otpravit_na_soglasov_di" bpmnElement="task_otpravit_na_soglasov">
+        <dc:Bounds x="1430" y="120" width="160" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="exclusiveGateway_Финдиректор_согласов_di" bpmnElement="exclusiveGateway_Финдиректор_согласов">
-        <dc:Bounds x="1630" y="265"
-                   width="50" height="50" />
+      <bpmndi:BPMNShape id="gw_findirektor_soglasov_di" bpmnElement="gw_findirektor_soglasov" isMarkerVisible="true">
+        <dc:Bounds x="1630" y="265" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task_Внести_изменения_di" bpmnElement="task_Внести_изменения">
-        <dc:Bounds x="1830" y="260"
-                   width="160" height="60" />
+      <bpmndi:BPMNShape id="task_vnesti_izmeneniya_di" bpmnElement="task_vnesti_izmeneniya">
+        <dc:Bounds x="1830" y="260" width="160" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="task_Прикрепить_финальный_di" bpmnElement="task_Прикрепить_финальный">
-        <dc:Bounds x="2030" y="120"
-                   width="160" height="60" />
+      <bpmndi:BPMNShape id="task_prikrepit_finalnyj_r_di" bpmnElement="task_prikrepit_finalnyj_r">
+        <dc:Bounds x="2030" y="120" width="160" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="endEvent_Расчет_согласован_di" bpmnElement="endEvent_Расчет_согласован">
-        <dc:Bounds x="2230" y="272"
-                   width="36" height="36" />
+      <bpmndi:BPMNShape id="end_raschet_soglasovan_di" bpmnElement="end_raschet_soglasovan">
+        <dc:Bounds x="2230" y="272" width="36" height="36" />
       </bpmndi:BPMNShape>
 
-      <!-- Потоки (соединения) -->
       <bpmndi:BPMNEdge id="flow_1_di" bpmnElement="flow_1">
         <di:waypoint x="266" y="150" />
         <di:waypoint x="430" y="150" />
@@ -200,10 +207,12 @@ name="Нет" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow_7_di" bpmnElement="flow_7">
         <di:waypoint x="1590" y="150" />
+        <di:waypoint x="1630" y="150" />
         <di:waypoint x="1630" y="290" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow_8_di" bpmnElement="flow_8">
         <di:waypoint x="1680" y="290" />
+        <di:waypoint x="2030" y="290" />
         <di:waypoint x="2030" y="150" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1835"
@@ -222,10 +231,12 @@ name="Нет" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow_10_di" bpmnElement="flow_10">
         <di:waypoint x="1990" y="290" />
+        <di:waypoint x="2030" y="290" />
         <di:waypoint x="2030" y="150" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="flow_11_di" bpmnElement="flow_11">
         <di:waypoint x="2190" y="150" />
+        <di:waypoint x="2230" y="150" />
         <di:waypoint x="2230" y="290" />
       </bpmndi:BPMNEdge>
 
