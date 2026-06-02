@@ -1,0 +1,149 @@
+{
+  "process_name": "Расчет плановой калькуляции по заявке",
+  "lanes": [
+    {
+      "id": "lane_economist",
+      "name": "Экономист"
+    },
+    {
+      "id": "lane_finance_director",
+      "name": "Финансовый директор"
+    }
+  ],
+  "elements": [
+    {
+      "id": "startEvent_Появилась_новая_зада",
+      "type": "startEvent",
+      "name": "Появилась новая задача",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "task_Просмотреть_документ",
+      "type": "task",
+      "name": "Просмотреть документы заявки",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "exclusiveGateway_Изделие_из_прайса_",
+      "type": "exclusiveGateway",
+      "name": "Изделие из прайса?",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "task_Взять_цену_из_прайса",
+      "type": "task",
+      "name": "Взять цену из прайса",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "endEvent_Расчет_по_прайсу_гот",
+      "type": "endEvent",
+      "name": "Расчет по прайсу готов",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "task_Заполнить_калькуляци",
+      "type": "task",
+      "name": "Заполнить калькуляцию",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "task_Отправить_на_согласо",
+      "type": "task",
+      "name": "Отправить на согласование",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "exclusiveGateway_Финдиректор_согласов",
+      "type": "exclusiveGateway",
+      "name": "Финдиректор согласовал?",
+      "lane_id": "lane_finance_director"
+    },
+    {
+      "id": "task_Внести_изменения",
+      "type": "task",
+      "name": "Внести изменения",
+      "lane_id": "lane_finance_director"
+    },
+    {
+      "id": "task_Прикрепить_финальный",
+      "type": "task",
+      "name": "Прикрепить финальный расчет",
+      "lane_id": "lane_economist"
+    },
+    {
+      "id": "endEvent_Расчет_согласован",
+      "type": "endEvent",
+      "name": "Расчет согласован",
+      "lane_id": "lane_finance_director"
+    }
+  ],
+  "flows": [
+    {
+      "id": "flow_1",
+      "source_id": "startEvent_Появилась_новая_зада",
+      "target_id": "task_Просмотреть_документ",
+      "condition": null
+    },
+    {
+      "id": "flow_2",
+      "source_id": "task_Просмотреть_документ",
+      "target_id": "exclusiveGateway_Изделие_из_прайса_",
+      "condition": null
+    },
+    {
+      "id": "flow_3",
+      "source_id": "exclusiveGateway_Изделие_из_прайса_",
+      "target_id": "task_Взять_цену_из_прайса",
+      "condition": "Да"
+    },
+    {
+      "id": "flow_4",
+      "source_id": "task_Взять_цену_из_прайса",
+      "target_id": "endEvent_Расчет_по_прайсу_гот",
+      "condition": null
+    },
+    {
+      "id": "flow_5",
+      "source_id": "exclusiveGateway_Изделие_из_прайса_",
+      "target_id": "task_Заполнить_калькуляци",
+      "condition": "Нет"
+    },
+    {
+      "id": "flow_6",
+      "source_id": "task_Заполнить_калькуляци",
+      "target_id": "task_Отправить_на_согласо",
+      "condition": null
+    },
+    {
+      "id": "flow_7",
+      "source_id": "task_Отправить_на_согласо",
+      "target_id": "exclusiveGateway_Финдиректор_согласов",
+      "condition": null
+    },
+    {
+      "id": "flow_8",
+      "source_id": "exclusiveGateway_Финдиректор_согласов",
+      "target_id": "task_Прикрепить_финальный",
+      "condition": "Да"
+    },
+    {
+      "id": "flow_9",
+      "source_id": "exclusiveGateway_Финдиректор_согласов",
+      "target_id": "task_Внести_изменения",
+      "condition": "Нет"
+    },
+    {
+      "id": "flow_10",
+      "source_id": "task_Внести_изменения",
+      "target_id": "task_Прикрепить_финальный",
+      "condition": null
+    },
+    {
+      "id": "flow_11",
+      "source_id": "task_Прикрепить_финальный",
+      "target_id": "endEvent_Расчет_согласован",
+      "condition": null
+    }
+  ]
+}

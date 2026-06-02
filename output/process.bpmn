@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://bpmn.io/schema/bpmn"
+             id="Definitions_1">
+
+  <!-- Процесс: Расчет плановой калькуляции по заявке -->
+  <collaboration id="Collaboration_1">
+    <participant id="Pool_1" name="Расчет плановой калькуляции по заявке" processRef="Process_1" />
+  </collaboration>
+
+  <process id="Process_1" isExecutable="false">
+
+    <!-- Lanes (участники) -->
+    <laneSet id="LaneSet_1">
+      <lane id="lane_economist" name="Экономист">
+        <flowNodeRef>startEvent_Появилась_новая_зада</flowNodeRef>
+        <flowNodeRef>task_Просмотреть_документ</flowNodeRef>
+        <flowNodeRef>exclusiveGateway_Изделие_из_прайса_</flowNodeRef>
+        <flowNodeRef>task_Взять_цену_из_прайса</flowNodeRef>
+        <flowNodeRef>endEvent_Расчет_по_прайсу_гот</flowNodeRef>
+        <flowNodeRef>task_Заполнить_калькуляци</flowNodeRef>
+        <flowNodeRef>task_Отправить_на_согласо</flowNodeRef>
+        <flowNodeRef>task_Прикрепить_финальный</flowNodeRef>
+      </lane>
+      <lane id="lane_finance_director" name="Финансовый директор">
+        <flowNodeRef>exclusiveGateway_Финдиректор_согласов</flowNodeRef>
+        <flowNodeRef>task_Внести_изменения</flowNodeRef>
+        <flowNodeRef>endEvent_Расчет_согласован</flowNodeRef>
+      </lane>
+    </laneSet>
+
+    <!-- Элементы процесса -->
+    <startEvent id="startEvent_Появилась_новая_зада" name="Появилась новая задача" />
+    <task id="task_Просмотреть_документ" name="Просмотреть документы заявки" />
+    <exclusiveGateway id="exclusiveGateway_Изделие_из_прайса_" name="Изделие из прайса?" gatewayDirection="Diverging" />
+    <task id="task_Взять_цену_из_прайса" name="Взять цену из прайса" />
+    <endEvent id="endEvent_Расчет_по_прайсу_гот" name="Расчет по прайсу готов" />
+    <task id="task_Заполнить_калькуляци" name="Заполнить калькуляцию" />
+    <task id="task_Отправить_на_согласо" name="Отправить на согласование" />
+    <exclusiveGateway id="exclusiveGateway_Финдиректор_согласов" name="Финдиректор согласовал?" gatewayDirection="Diverging" />
+    <task id="task_Внести_изменения" name="Внести изменения" />
+    <task id="task_Прикрепить_финальный" name="Прикрепить финальный расчет" />
+    <endEvent id="endEvent_Расчет_согласован" name="Расчет согласован" />
+
+    <!-- Потоки -->
+    <sequenceFlow id="flow_1"
+                  sourceRef="startEvent_Появилась_новая_зада"
+                  targetRef="task_Просмотреть_документ"
+ />
+    <sequenceFlow id="flow_2"
+                  sourceRef="task_Просмотреть_документ"
+                  targetRef="exclusiveGateway_Изделие_из_прайса_"
+ />
+    <sequenceFlow id="flow_3"
+                  sourceRef="exclusiveGateway_Изделие_из_прайса_"
+                  targetRef="task_Взять_цену_из_прайса"
+name="Да" />
+    <sequenceFlow id="flow_4"
+                  sourceRef="task_Взять_цену_из_прайса"
+                  targetRef="endEvent_Расчет_по_прайсу_гот"
+ />
+    <sequenceFlow id="flow_5"
+                  sourceRef="exclusiveGateway_Изделие_из_прайса_"
+                  targetRef="task_Заполнить_калькуляци"
+name="Нет" />
+    <sequenceFlow id="flow_6"
+                  sourceRef="task_Заполнить_калькуляци"
+                  targetRef="task_Отправить_на_согласо"
+ />
+    <sequenceFlow id="flow_7"
+                  sourceRef="task_Отправить_на_согласо"
+                  targetRef="exclusiveGateway_Финдиректор_согласов"
+ />
+    <sequenceFlow id="flow_8"
+                  sourceRef="exclusiveGateway_Финдиректор_согласов"
+                  targetRef="task_Прикрепить_финальный"
+name="Да" />
+    <sequenceFlow id="flow_9"
+                  sourceRef="exclusiveGateway_Финдиректор_согласов"
+                  targetRef="task_Внести_изменения"
+name="Нет" />
+    <sequenceFlow id="flow_10"
+                  sourceRef="task_Внести_изменения"
+                  targetRef="task_Прикрепить_финальный"
+ />
+    <sequenceFlow id="flow_11"
+                  sourceRef="task_Прикрепить_финальный"
+                  targetRef="endEvent_Расчет_согласован"
+ />
+
+  </process>
+
+  <!-- Диаграмма (координаты) -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+
+      <!-- Пул -->
+      <bpmndi:BPMNShape id="Pool_1_di" bpmnElement="Pool_1" isHorizontal="true">
+        <dc:Bounds x="130" y="80"
+                   width="2316"
+                   height="280" />
+      </bpmndi:BPMNShape>
+
+      <!-- Lanes -->
+      <bpmndi:BPMNShape id="lane_economist_di" bpmnElement="lane_economist" isHorizontal="true">
+        <dc:Bounds x="160" y="80"
+                   width="2286"
+                   height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane_finance_director_di" bpmnElement="lane_finance_director" isHorizontal="true">
+        <dc:Bounds x="160" y="220"
+                   width="2286"
+                   height="140" />
+      </bpmndi:BPMNShape>
+
+      <!-- Элементы -->
+      <bpmndi:BPMNShape id="startEvent_Появилась_новая_зада_di" bpmnElement="startEvent_Появилась_новая_зада">
+        <dc:Bounds x="230" y="132"
+                   width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_Просмотреть_документ_di" bpmnElement="task_Просмотреть_документ">
+        <dc:Bounds x="430" y="120"
+                   width="160" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="exclusiveGateway_Изделие_из_прайса__di" bpmnElement="exclusiveGateway_Изделие_из_прайса_">
+        <dc:Bounds x="630" y="125"
+                   width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_Взять_цену_из_прайса_di" bpmnElement="task_Взять_цену_из_прайса">
+        <dc:Bounds x="830" y="120"
+                   width="160" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_Расчет_по_прайсу_гот_di" bpmnElement="endEvent_Расчет_по_прайсу_гот">
+        <dc:Bounds x="1230" y="132"
+                   width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_Заполнить_калькуляци_di" bpmnElement="task_Заполнить_калькуляци">
+        <dc:Bounds x="1030" y="120"
+                   width="160" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_Отправить_на_согласо_di" bpmnElement="task_Отправить_на_согласо">
+        <dc:Bounds x="1430" y="120"
+                   width="160" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="exclusiveGateway_Финдиректор_согласов_di" bpmnElement="exclusiveGateway_Финдиректор_согласов">
+        <dc:Bounds x="1630" y="265"
+                   width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_Внести_изменения_di" bpmnElement="task_Внести_изменения">
+        <dc:Bounds x="1830" y="260"
+                   width="160" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="task_Прикрепить_финальный_di" bpmnElement="task_Прикрепить_финальный">
+        <dc:Bounds x="2030" y="120"
+                   width="160" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="endEvent_Расчет_согласован_di" bpmnElement="endEvent_Расчет_согласован">
+        <dc:Bounds x="2230" y="272"
+                   width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <!-- Потоки (соединения) -->
+      <bpmndi:BPMNEdge id="flow_1_di" bpmnElement="flow_1">
+        <di:waypoint x="266" y="150" />
+        <di:waypoint x="430" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_2_di" bpmnElement="flow_2">
+        <di:waypoint x="590" y="150" />
+        <di:waypoint x="630" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_3_di" bpmnElement="flow_3">
+        <di:waypoint x="680" y="150" />
+        <di:waypoint x="830" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="735"
+                     y="140"
+                     width="60" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_4_di" bpmnElement="flow_4">
+        <di:waypoint x="990" y="150" />
+        <di:waypoint x="1230" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_5_di" bpmnElement="flow_5">
+        <di:waypoint x="680" y="150" />
+        <di:waypoint x="1030" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="835"
+                     y="140"
+                     width="60" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_6_di" bpmnElement="flow_6">
+        <di:waypoint x="1190" y="150" />
+        <di:waypoint x="1430" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_7_di" bpmnElement="flow_7">
+        <di:waypoint x="1590" y="150" />
+        <di:waypoint x="1630" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_8_di" bpmnElement="flow_8">
+        <di:waypoint x="1680" y="290" />
+        <di:waypoint x="2030" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1835"
+                     y="210"
+                     width="60" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_9_di" bpmnElement="flow_9">
+        <di:waypoint x="1680" y="290" />
+        <di:waypoint x="1830" y="290" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1735"
+                     y="280"
+                     width="60" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_10_di" bpmnElement="flow_10">
+        <di:waypoint x="1990" y="290" />
+        <di:waypoint x="2030" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow_11_di" bpmnElement="flow_11">
+        <di:waypoint x="2190" y="150" />
+        <di:waypoint x="2230" y="290" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>

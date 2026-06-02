@@ -4,11 +4,12 @@
 1. Верни ТОЛЬКО JSON, без пояснений, без markdown-блоков, без текста до или после.
 2. Генерируй уникальные id для каждого элемента: используй префиксы:
    - start_ для startEvent
-   - end_ для endEvent  
+   - end_ для endEvent
    - task_ для task
    - gw_ для exclusiveGateway
    - flow_ для потоков
    Добавляй порядковый номер: task_1, task_2, gw_1 и т.д.
+   Используй для префиксов только английский язык, например: task_make_changes
 3. Поле "lane" — это id участника (из списка УЧАСТНИКИ, в скобках).
 4. Если в потоке есть условие в скобках — помести его в "condition".
 5. Поля "from" и "to" в потоках — это id элементов (не названия).
@@ -17,8 +18,8 @@
 ФОРМАТ ОТВЕТА:
 {
   "process_name": "название процесса",
-  "participants": [
-    {"id": "lane_id", "name": "Название участника"}
+  "lanes": [
+    {"id": "lane_id","name": "Название участника"},
   ],
   "elements": [
     {"id": "start_1", "type": "startEvent", "name": "...", "lane": "lane_id"},
@@ -31,3 +32,80 @@
     {"id": "flow_2", "from": "gw_1", "to": "task_2", "condition": "Да"}
   ]
 }
+
+========================================================
+ЭТАЛОННЫЙ ПРИМЕР (few-shot) — ориентируйся на эту логику
+========================================================
+
+ВХОДНОЙ ТЕКСТ:
+---
+БИЗНЕС-ПРОЦЕСС: Расчет плановой калькуляции по заявке
+УЧАСТНИКИ:
+  - Экономист (lane_economist)
+  - Финансовый директор (lane_finance_director)
+ЭЛЕМЕНТЫ ПРОЦЕССА:
+  [startEvent] Появилась новая задача → Экономист
+  [task] Просмотреть документы заявки → Экономист
+  [exclusiveGateway] Изделие из прайса? → Экономист
+  [task] Взять цену из прайса → Экономист
+  [endEvent] Расчет по прайсу готов → Экономист
+  [task] Заполнить калькуляцию → Экономист
+  [task] Отправить на согласование → Экономист
+  [exclusiveGateway] Финдиректор согласовал? → Финансовый директор
+  [task] Внести изменения → Финансовый директор
+  [task] Прикрепить финальный расчет → Экономист
+  [endEvent] Расчет согласован → Финансовый директор
+ПОТОКИ:
+  Появилась новая задача --> Просмотреть документы заявки
+  Просмотреть документы заявки --> Изделие из прайса?
+  Изделие из прайса? --> Взять цену из прайса (Да)
+  Взять цену из прайса --> Расчет по прайсу готов
+  Изделие из прайса? --> Заполнить калькуляцию (Нет)
+  Заполнить калькуляцию --> Отправить на согласование
+  Отправить на согласование --> Финдиректор согласовал?
+  Финдиректор согласовал? --> Прикрепить финальный расчет (Да)
+  Финдиректор согласовал? --> Внести изменения (Нет)
+  Внести изменения --> Прикрепить финальный расчет
+  Прикрепить финальный расчет --> Расчет согласован
+---
+
+ПРАВИЛЬНЫЙ JSON ДЛЯ ЭТОГО ТЕКСТА:
+---
+{
+  "process_name": "Расчет плановой калькуляции по заявке и согласование с финансовым директором",
+  "lanes": [
+    {"id": "lane_economist","name": "Экономист"},
+    {"id": "lane_finance_director","name": "Финансовый директор"}
+  ],
+  "elements": [
+    {"id": "start_1","type": "startEvent","name": "Появилась новая задача по заявке в Битрикс","lane_id": "lane_economist"},
+    {"id": "task_view_docs","type": "task","name": "Просмотреть документы заявки","lane_id": "lane_economist"},
+    {"id": "gw_price_list","type": "exclusiveGateway","name": "Изделие из прайса?","lane_id": "lane_economist"},
+    {"id": "task_take_price","type": "task","name": "Взять цену из прайса и прикрепить в Битрикс","lane_id": "lane_economist"},
+    {"id": "end_pricelist","type": "endEvent","name": "Расчет по прайсу прикреплен, задача завершена","lane_id": "lane_finance_director"},
+    {"id": "task_fill_calc","type": "task","name": "Заполнить калькуляцию","lane_id": "lane_economist"},
+    {"id": "task_send_fd","type": "task","name": "Отправить расчет финдиректору на согласование (по e-mail)","lane_id": "lane_economist"},
+    {"id": "gw_fd_approved","type": "exclusiveGateway","name": "Финдиректор согласовал?","lane_id": "lane_finance_director"},
+    {"id": "task_make_changes","type": "task","name": "Внести изменения в калькуляцию и отправить исправленный файл","lane_id": "lane_finance_director"},
+    {"id": "task_attach_final","type": "task","name": "Прикрепить финальный расчет в Битрикс и отметить согласование","lane_id": "lane_economist"},
+    {"id": "task_transfer_task","type": "task","name": "Перевести задачу на финдиректора и завершить свою задачу","lane_id": "lane_economist"},
+    {"id": "end_approved","type": "endEvent","name": "Расчет согласован и зафиксирован в Битрикс","lane_id": "lane_finance_director"}
+  ],
+"flows": [
+    {"id": "flow_1","source_id": "start_1","target_id": "task_view_docs","condition": null},
+    {"id": "flow_2","source_id": "task_view_docs","target_id": "gw_price_list","condition": null},
+    {"id": "flow_6_yes","source_id": "gw_price_list","target_id": "task_take_price","condition": "Да"},
+    {"id": "flow_6_no","source_id": "gw_price_list","target_id": "task_fill_calc","condition": "Нет"},
+    {"id": "flow_7","source_id": "task_take_price","target_id": "end_pricelist","condition": null},
+    {"id": "flow_8","source_id": "task_fill_calc","target_id": "task_send_fd","condition": null},
+    {"id": "flow_19","source_id": "task_send_fd","target_id": "gw_fd_approved","condition": null},
+    {"id": "flow_20_yes","source_id": "gw_fd_approved","target_id": "task_attach_final","condition": "Да"},
+    {"id": "flow_20_no","source_id": "gw_fd_approved","target_id": "task_make_changes","condition": "Нет (правки)"},
+    {"id": "flow_21","source_id": "task_make_changes","target_id": "task_attach_final","condition": null},
+    {"id": "flow_22","source_id": "task_attach_final","target_id": "task_transfer_task","condition": null},
+    {"id": "flow_23","source_id": "task_transfer_task","target_id": "end_approved","condition": null}
+  ]
+}
+---
+
+Теперь сделай то же самое для нового текста процесса, который придёт в сообщении пользователя.

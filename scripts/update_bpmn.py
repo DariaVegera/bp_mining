@@ -18,6 +18,38 @@ load_dotenv()
 PROJECT_ROOT = Path(__file__).parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "output"
 
+# Эталонный пример изменения JSON (few-shot).
+# Показывает модели: какая структура считается правильной,
+# и как корректно вносить изменения не ломая схему.
+FEW_SHOT_EXAMPLE = """
+ПРИМЕР ПРАВИЛЬНОГО ИЗМЕНЕНИЯ JSON:
+
+Запрос: "добавь шаг 'Проверить договор' после задачи 'Отправить на согласование'"
+
+Было в elements:
+  {"id": "task_4", "type": "task", "name": "Отправить на согласование", "lane": "lane_economist"},
+  {"id": "gw_2",   "type": "exclusiveGateway", "name": "Финдиректор согласовал?", "lane": "lane_finance_director"}
+
+Было в flows:
+  {"id": "flow_7", "from": "task_4", "to": "gw_2", "condition": ""}
+
+Стало в elements (добавили новый task):
+  {"id": "task_4",    "type": "task", "name": "Отправить на согласование", "lane": "lane_economist"},
+  {"id": "task_new1", "type": "task", "name": "Проверить договор",         "lane": "lane_economist"},
+  {"id": "gw_2",      "type": "exclusiveGateway", "name": "Финдиректор согласовал?", "lane": "lane_finance_director"}
+
+Стало в flows (старый поток заменили двумя новыми):
+  {"id": "flow_7",    "from": "task_4",    "to": "task_new1", "condition": ""},
+  {"id": "flow_new1", "from": "task_new1", "to": "gw_2",      "condition": ""}
+
+Правила которые соблюдены:
+- Старые id не изменились
+- Новый элемент получил уникальный id (task_new1)
+- Старый поток flow_7 переподключён к новому элементу
+- Добавлен новый поток от нового элемента к следующему
+- Схема JSON не изменилась
+"""
+
 
 def update_process(change_request: str) -> None:
     """Обновляет process.json согласно запросу пользователя через Claude API."""
@@ -46,15 +78,17 @@ def update_process(change_request: str) -> None:
 
     client = anthropic.Anthropic(api_key=api_key)
 
-    prompt = f"""У тебя есть JSON описание бизнес-процесса. Внеси в него изменение согласно запросу пользователя.
+    prompt = f"""У тебя есть JSON описание бизнес-процесса. Внеси изменение согласно запросу.
 Верни ТОЛЬКО обновлённый валидный JSON без пояснений, без markdown, без ```json.
 
-Правила:
+{FEW_SHOT_EXAMPLE}
+
+ПРАВИЛА:
 - Сохраняй все существующие id, не меняй их без необходимости
-- Новые элементы должны иметь уникальные id (латиница, без пробелов)
-- type может быть только: startEvent, task, exclusiveGateway, endEvent
+- Новые элементы: уникальные id (латиница, без пробелов, например task_new1)
+- type только: startEvent, task, exclusiveGateway, endEvent
 - Обновляй потоки (flows) если добавляешь/удаляешь элементы
-- Сохраняй структуру JSON без изменений схемы
+- Не меняй структуру схемы JSON
 
 ТЕКУЩИЙ JSON:
 {json.dumps(current_json, ensure_ascii=False, indent=2)}
@@ -69,19 +103,16 @@ def update_process(change_request: str) -> None:
     )
 
     response_text = message.content[0].text.strip()
-    # Убираем markdown-обёртки если есть
     response_text = re.sub(r'^```json\s*', '', response_text)
     response_text = re.sub(r'\s*```$', '', response_text)
 
     updated_json = json.loads(response_text)
 
-    # Сохраняем обновлённый JSON
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(updated_json, f, ensure_ascii=False, indent=2)
 
     print(f"JSON обновлён: {json_path}")
 
-    # Перегенерируем BPMN
     print("Перегенерирую BPMN диаграмму...")
     generate_script = PROJECT_ROOT / "scripts" / "generate_bpmn.py"
     subprocess.run([sys.executable, str(generate_script)], check=True)
@@ -90,7 +121,6 @@ def update_process(change_request: str) -> None:
 def main():
     if len(sys.argv) < 2:
         print("Использование: python update_bpmn.py \"описание изменения\"")
-        print("Пример: python update_bpmn.py \"добавь шаг проверки качества после задачи X\"")
         sys.exit(1)
 
     change_request = " ".join(sys.argv[1:])
